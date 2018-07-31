@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const apiai = require('apiai')(APIAI_TOKEN);
+const apiai = require('apiai')(DF_TOKEN);
 
 app.use(express.static(__dirname + '/views'));
 app.use(express.static(__dirname + '/public'));

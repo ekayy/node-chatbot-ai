@@ -18,3 +18,23 @@ recognition.addEventListener('result', e => {
 
   socket.emit('chat message', text);
 });
+
+io.on('connection', function(socket) {
+  socket.on('chat message', text => {
+    // get reply from dialogflow
+    let dialogFlowReq = dialogFlow.textRequest(text, {
+      sessionId: DF_SESSION_ID,
+    });
+
+    dialogFlowReq.on('response', response => {
+      let dialogFlowText = response.result.fulfillment.speech;
+      socket.emit('bot reply', dialogFlowText); // send result back to browser
+    });
+
+    dialogFlowReq.on('error', error => {
+      console.log(error);
+    });
+
+    dialogFlowReq.end();
+  });
+});
