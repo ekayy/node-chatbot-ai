@@ -1,40 +1,54 @@
 const socket = io();
+
+const outputYou = document.querySelector('.output-you');
+const outputBot = document.querySelector('.output-bot');
+
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 
 recognition.lang = 'en-US';
 recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
 document.querySelector('button').addEventListener('click', () => {
   recognition.start();
 });
 
+recognition.addEventListener('speechstart', () => {
+  console.log('Speech has been detected.');
+});
+
 recognition.addEventListener('result', e => {
+  console.log('Result has been detected.');
+
   let last = e.results.length - 1;
   let text = e.results[last][0].transcript;
 
+  outputYou.textContent = text;
   console.log('Confidence: ' + e.results[0][0].confidence);
 
   socket.emit('chat message', text);
 });
 
-io.on('connection', function(socket) {
-  socket.on('chat message', text => {
-    // get reply from dialogflow
-    let dialogFlowReq = dialogFlow.textRequest(text, {
-      sessionId: DF_SESSION_ID,
-    });
+recognition.addEventListener('speechend', () => {
+  recognition.stop();
+});
 
-    dialogFlowReq.on('response', response => {
-      let dialogFlowText = response.result.fulfillment.speech;
-      socket.emit('bot reply', dialogFlowText); // send result back to browser
-    });
+recognition.addEventListener('error', e => {
+  outputBot.textContent = 'Error: ' + e.error;
+});
 
-    dialogFlowReq.on('error', error => {
-      console.log(error);
-    });
+function synthVoice(text) {
+  const synth = window.speechSynthesis;
+  const utterance = new SpeechSynthesisUtterance();
+  utterance.text = text;
+  synth.speak(utterance);
+}
 
-    dialogFlowReq.end();
-  });
+socket.on('bot reply', function(replyText) {
+  synthVoice(replyText);
+
+  if (replyText == '') replyText = '(No answer...)';
+  outputBot.textContent = replyText;
 });
