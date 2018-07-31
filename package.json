@@ -1,5 +1,5 @@
 {
-  "name": "chatbot-ai",
+  "name": "node-chatbot-ai",
   "version": "1.0.0",
   "description": "Simple AI Chat Bot w/ Web Speech API",
   "main": "index.js",
